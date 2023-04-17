@@ -1,9 +1,14 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
+from rest_framework.filters import SearchFilter
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
-from reviews.models import Review, Comment, Title
-from .serializers import ReviewsSerializer, CommentSerializer
+from reviews.models import Category, Comment, Genre, Review, Title, TitleGenre
+
+from .serializers import (CategorySerializer, CommentSerializer,
+                          GenreSerializer, ReviewsSerializer,
+                          TitleGenreReadSerializer)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -31,3 +36,31 @@ class CommentViewSet(viewsets.ModelViewSet):
         review = get_object_or_404(Review, id=self.kwargs.get('review_id'))
         title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
         serializer.save(review=review, title=title)
+
+
+class CategoryViewSet(viewsets.ModelViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+    pagination_class = LimitOffsetPagination
+    filter_backends = (SearchFilter,)
+
+
+class TitleViewSet(viewsets.ModelViewSet):
+    queryset = Title.objects.all()
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+    pagination_class = LimitOffsetPagination
+
+
+class GenreViewSet(viewsets.ModelViewSet):
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+    pagination_class = LimitOffsetPagination
+    filter_backends = (SearchFilter,)
+
+
+class TitleGenreViewSet(viewsets.ModelViewSet):
+    queryset = TitleGenre.objects.prefetch_related('genre', 'title').all()
+    serializer_class = TitleGenreReadSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly,)
