@@ -1,39 +1,33 @@
-from rest_framework import filters, mixins, status, viewsets
-from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.filters import SearchFilter
-from rest_framework.permissions import (IsAuthenticated,
-                                        IsAuthenticatedOrReadOnly)
-from reviews.models import Category, Genre, Title, TitleGenre
+from django.shortcuts import get_object_or_404
+from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
-from .serializers import (CategorySerializer, GenreSerializer,
-                          TitleGenreReadSerializer,
-                          TitleGenreWriteSerializer, TitleReadSerializer,
-                          TitleWriteSerializer)
+from reviews.models import Review, Comment, Title
+from .serializers import ReviewsSerializer, CommentSerializer
 
 
-class CategoryViewSet(viewsets.ModelViewSet):
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
+class ReviewViewSet(viewsets.ModelViewSet):
+    queryset = Review.objects.all()
+    serializer_class = ReviewsSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
-    pagination_class = LimitOffsetPagination
-    filter_backends = (SearchFilter,)
+
+    def get_queryset(self):
+        return Review.objects.filter(title=self.kwargs.get('title_id'))
+
+    def perform_create(self, serializer):
+        title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
+        serializer.save(author=self.request.user, title=title)
 
 
-class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.all()
+class CommentViewSet(viewsets.ModelViewSet):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
-    pagination_class = LimitOffsetPagination
 
+    def get_queryset(self):
+        return Comment.objects.filter(review=self.kwargs.get('review_id'))
 
-class GenreViewSet(viewsets.ModelViewSet):
-    queryset = Genre.objects.all()
-    serializer_class = GenreSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly,)
-    pagination_class = LimitOffsetPagination
-    filter_backends = (SearchFilter,)
-
-
-class TitleGenreViewSet(viewsets.ModelViewSet):
-    queryset = TitleGenre.objects.prefetch_related('genre', 'title').all()
-    serializer_class = TitleGenreReadSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    def perform_create(self, serializer):
+        review = get_object_or_404(Review, id=self.kwargs.get('review_id'))
+        title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
+        serializer.save(review=review, title=title)
