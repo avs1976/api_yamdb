@@ -10,7 +10,7 @@ class ReviewsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Review
-        fields = ('id', 'title', 'text', 'author', 'score', 'pud_date')
+        fields = ('id', 'title', 'text', 'author', 'score', 'pub_date')
         validators = [
             UniqueTogetherValidator(
                 queryset=Review.objects.all(),
@@ -20,9 +20,9 @@ class ReviewsSerializer(serializers.ModelSerializer):
         ]
 
 
-class CommentSerializer(serializers.ModelField):
+class CommentSerializer(serializers.ModelSerializer):
     author = SlugRelatedField(slug_field='username', read_only=True)
 
     class Meta:
         model = Comment
-        fields = ('id', 'review', 'text', 'author', 'pud_date')
+        fields = ('id', 'review', 'text', 'author', 'pub_date')
