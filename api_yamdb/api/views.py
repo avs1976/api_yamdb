@@ -3,12 +3,13 @@ from rest_framework import viewsets
 from rest_framework.filters import SearchFilter
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from django.db.models import Avg
 
 from reviews.models import Category, Comment, Genre, Review, Title, TitleGenre
 
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewsSerializer,
-                          TitleGenreReadSerializer)
+                          TitleGenreReadSerializer, TitleReadSerializer)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -48,8 +49,13 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
+    serializer_class = TitleReadSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
     pagination_class = LimitOffsetPagination
+
+    def get_queryset(self):
+        new_queryset = Title.objects.annotate(rating=Avg('reviews__score'))
+        return new_queryset
 
 
 class GenreViewSet(viewsets.ModelViewSet):

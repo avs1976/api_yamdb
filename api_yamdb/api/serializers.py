@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import UniqueTogetherValidator
+from django.db import models
 
 from reviews.models import Category, Comment, Genre, Review, Title, TitleGenre
 
@@ -53,6 +54,7 @@ class TitleWriteSerializer(serializers.ModelSerializer):
 class TitleReadSerializer(serializers.ModelSerializer):
     genre = GenreSerializer(many=True)
     category = CategorySerializer()
+    rating = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Title

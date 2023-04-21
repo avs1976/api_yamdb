@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models import Avg
 
 
 class User(AbstractUser):
@@ -80,6 +81,11 @@ class Title(models.Model):
         related_name='title',
         verbose_name='Категория'
     )
+    #rating = models.FloatField('Рейтинг', blank=True, null=True)
+
+    def update_rating(self):
+        self.rating = self.reviews.aggregate(Avg('score'))['score__avg']
+        self.save()
 
 
 class TitleGenre(models.Model):
