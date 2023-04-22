@@ -13,7 +13,7 @@ class User(AbstractUser):
         (MODERATOR, "Moderator"),
         (ADMIN, "Admin")
     )
-
+    
     role = models.CharField(
         'Роль',
         max_length=32,
