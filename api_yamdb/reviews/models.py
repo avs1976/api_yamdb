@@ -5,6 +5,16 @@ from django.db import models
 
 class User(AbstractUser):
     """Определение пользователей"""
+    username = models.CharField(
+        'Имя пользователя',
+        unique=True,
+        max_length=150,
+        blank=True,
+        null=True,
+        error_messages={
+            'unique': "Пользователь с таким именем уже существует.",
+        },
+    )
     USER = 'user'
     MODERATOR = 'moderator'
     ADMIN = 'admin'
@@ -13,7 +23,6 @@ class User(AbstractUser):
         (MODERATOR, "Moderator"),
         (ADMIN, "Admin")
     )
-    
     role = models.CharField(
         'Роль',
         max_length=32,
