@@ -1,57 +1,40 @@
-from django.conf import settings
-from django.core.exceptions import ValidationError
-from django.core.validators import MaxValueValidator, MinValueValidator
-from django.shortcuts import get_object_or_404
+from users.validators import ValidateUsername
+from api_yamdb.settings import EMAIL, USERNAME_NAME
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import UniqueTogetherValidator
 
 from reviews.models import Category, Comment, Genre, Review, Title, TitleGenre
 from users.models import User
-from users.validators import username_me
 
 
-class SignUpSerializer(serializers.Serializer):
-    username = serializers.RegexField(max_length=settings.LIMIT_USERNAME,
-                                      regex=r'^[\w.@+-]+\Z', required=True)
-    email = serializers.EmailField(required=True)
-
-    def validate_username(self, value):
-        return username_me(value)
-
-
-class TokenRegSerializer(serializers.Serializer):
-    username = serializers.RegexField(max_length=settings.LIMIT_USERNAME,
-                                      regex=r'^[\w.@+-]+\Z', required=True)
-    confirmation_code = serializers.CharField(max_length=settings.LIMIT_CHAT,
-                                              required=True)
-
-    def validate_username(self, value):
-        return username_me(value)
-
-
-class UserSerializer(serializers.ModelSerializer):
-    username = serializers.RegexField(max_length=settings.LIMIT_USERNAME,
-                                      regex=r'^[\w.@+-]+\Z', required=True)
+class UserSerializer(serializers.ModelSerializer, ValidateUsername):
+    """Сериализатор модели User"""
 
     class Meta:
-        abstract = True
         model = User
         fields = ('username', 'email', 'first_name',
                   'last_name', 'bio', 'role')
+        lookup_field = ('username',)
 
-    def validate_username(self, value):
-        if (
-            self.context.get('request').method == 'POST'
-            and User.objects.filter(username=value).exists()
-        ):
-            raise ValidationError(
-                'Пользователь с таким именем уже существует.'
-            )
-        return username_me(value)
+
+class RegistrationSerializer(serializers.Serializer, ValidateUsername):
+    """Сериализатор регистрации User"""
+
+    username = serializers.CharField(required=True, max_length=USERNAME_NAME)
+    email = serializers.EmailField(required=True, max_length=EMAIL)
+
+
+class TokenSerializer(serializers.Serializer, ValidateUsername):
+    """Сериализатор токена"""
+
+    username = serializers.CharField(required=True, max_length=USERNAME_NAME)
+    confirmation_code = serializers.CharField(required=True)
 
 
 class UserEditSerializer(UserSerializer):
+    """Сериализатор модели User для get и patch"""
+
     role = serializers.CharField(read_only=True)
 
 
