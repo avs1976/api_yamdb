@@ -1,11 +1,11 @@
-from users.validators import ValidateUsername
-from api_yamdb.settings import EMAIL, USERNAME_NAME
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import UniqueTogetherValidator
 
+from api_yamdb.settings import EMAIL, USERNAME_NAME
 from reviews.models import Category, Comment, Genre, Review, Title, TitleGenre
 from users.models import User
+from users.validators import ValidateUsername
 
 
 class UserSerializer(serializers.ModelSerializer, ValidateUsername):
@@ -43,7 +43,7 @@ class GenreSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Genre
-        fields = ('id', 'name', 'slug')
+        fields = ('name', 'slug')
 
     def validate_slug(self, value):
         if Genre.objects.filter(slug=value).exists():
@@ -56,7 +56,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Category
-        exclude = ('id',)
+        fields = ('name', 'slug')
         lookup_field = 'slug'
 
 
