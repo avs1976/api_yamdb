@@ -21,8 +21,10 @@ from .permissions import (IsAdmin, IsAdminModeratorAuthorOrReadOnly,
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer,
                           RegistrationSerializer, TokenSerializer,
-                          TitleGenreReadSerializer,
+                          TitleGenreReadSerializer, TitleSerializer,
                           UserEditSerializer, UserSerializer)
+from rest_framework.mixins import UpdateModelMixin
+
 
 
 @api_view(['POST'])
@@ -124,18 +126,30 @@ class CommentViewSet(viewsets.ModelViewSet):
         serializer.save(review=review, title=title)
 
 
-class CategoryViewSet(viewsets.ModelViewSet):
+class NoPatchMixin(UpdateModelMixin):
+    def update(self, request, *args, **kwargs):
+        return Response(
+            {'detail': 'Метод PATCH запрещен для данного ресурса.'},
+            status=status.HTTP_405_METHOD_NOT_ALLOWED
+        )
+
+
+class CategoryViewSet(NoPatchMixin, viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = (IsAdminOrReadOnly,)
     lookup_field = 'slug'
     pagination_class = LimitOffsetPagination
     filter_backends = (SearchFilter,)
     search_fields = ('name',)
 
+    def retrieve(self, request, *args, **kwargs):
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
 
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
+    serializer_class = TitleSerializer
     permission_classes = [IsAdminOrReadOnly]
     pagination_class = LimitOffsetPagination
 
@@ -152,3 +166,4 @@ class TitleGenreViewSet(viewsets.ModelViewSet):
     queryset = TitleGenre.objects.prefetch_related('genre', 'title').all()
     serializer_class = TitleGenreReadSerializer
     permission_classes = [IsAdminOrReadOnly]
+

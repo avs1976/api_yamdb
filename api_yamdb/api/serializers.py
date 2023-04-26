@@ -43,7 +43,12 @@ class GenreSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Genre
-        fields = ('id', 'name')
+        fields = ('id', 'name', 'slug')
+
+    def validate_slug(self, value):
+        if Genre.objects.filter(slug=value).exists():
+            raise serializers.ValidationError("Slug already exists")
+        return value
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -107,23 +112,23 @@ class TitleGenreWriteSerializer(serializers.ModelSerializer):
         fields = ('id', 'genre', 'title')
 
     def validate_genre(self, value):
+        if not value:
+            return value
         try:
-            genre = Genre.objects.get(id=value['id'])
+            genre = Genre.objects.get(slug=value['slug'])
         except Genre.DoesNotExist:
-            raise serializers.ValidationError(
-                "Недопустимый идентификатор жанра"
-            )
+            raise serializers.ValidationError("Invalid genre slug")
         return genre
 
     def create(self, validated_data):
         genre_data = validated_data.pop('genre')
-        genre = Genre.objects.get(id=genre_data['id'])
+        genre = Genre.objects.create(**genre_data)
         title_genre = TitleGenre.objects.create(genre=genre, **validated_data)
         return title_genre
 
     def update(self, instance, validated_data):
         genre_data = validated_data.pop('genre')
-        instance.genre = Genre.objects.get(id=genre_data['id'])
+        instance.genre = Genre.objects.get(slug=genre_data['slug'])
         instance.save()
         return instance
 
