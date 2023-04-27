@@ -92,10 +92,20 @@ class TitleWriteSerializer(serializers.ModelSerializer):
 class TitleReadSerializer(serializers.ModelSerializer):
     genre = GenreSerializer(many=True)
     category = CategorySerializer()
+    rating = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Title
-        fields = '__all__'
+        fields = (
+            'id',
+            'name',
+            'year',
+            'rating',
+            'description',
+            'category',
+            'genre',
+        )
+
 
 
 class TitleGenreReadSerializer(serializers.ModelSerializer):
@@ -133,19 +143,19 @@ class TitleGenreWriteSerializer(serializers.ModelSerializer):
         return instance
 
 
-class TitleSerializer(serializers.ModelSerializer):
-    genre = GenreSerializer(many=True)
-    category = CategorySerializer()
-    rating = serializers.IntegerField(default=1)
+# class TitleSerializer(serializers.ModelSerializer):
+#     genre = GenreSerializer(many=True)
+#     category = CategorySerializer()
+#     rating = serializers.IntegerField(default=1)
 
-    class Meta:
-        model = Title
-        fields = ('id', 'name', 'year', 'rating',
-                  'description', 'genre', 'category',
-                  )
-        read_only_fields = ('id', 'name', 'year', 'rating',
-                            'description', 'genre', 'category',
-                            )
+#     class Meta:
+#         model = Title
+#         fields = ('id', 'name', 'year', 'rating',
+#                   'description', 'genre', 'category',
+#                   )
+#         read_only_fields = ('id', 'name', 'year', 'rating',
+#                             'description', 'genre', 'category',
+#                             )
 
 
 class ReviewSerializer(serializers.ModelSerializer):
