@@ -73,17 +73,6 @@ class TitleWriteSerializer(serializers.ModelSerializer):
         queryset=Category.objects.all()
     )
 
-    def validate(self, data):
-        if not data.get('genre'):
-            raise serializers.ValidationError(
-                'Необходимо указать жанры'
-            )
-        if not data.get('category'):
-            raise serializers.ValidationError(
-                'Необходимо указать категории'
-            )
-        return data
-
     class Meta:
         model = Title
         fields = '__all__'
@@ -92,10 +81,19 @@ class TitleWriteSerializer(serializers.ModelSerializer):
 class TitleReadSerializer(serializers.ModelSerializer):
     genre = GenreSerializer(many=True)
     category = CategorySerializer()
+    rating = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Title
-        fields = '__all__'
+        fields = (
+            'id',
+            'name',
+            'year',
+            'rating',
+            'description',
+            'category',
+            'genre',
+        )
 
 
 class TitleGenreReadSerializer(serializers.ModelSerializer):
@@ -131,21 +129,6 @@ class TitleGenreWriteSerializer(serializers.ModelSerializer):
         instance.genre = Genre.objects.get(slug=genre_data['slug'])
         instance.save()
         return instance
-
-
-class TitleSerializer(serializers.ModelSerializer):
-    genre = GenreSerializer(many=True)
-    category = CategorySerializer()
-    rating = serializers.IntegerField(default=1)
-
-    class Meta:
-        model = Title
-        fields = ('id', 'name', 'year', 'rating',
-                  'description', 'genre', 'category',
-                  )
-        read_only_fields = ('id', 'name', 'year', 'rating',
-                            'description', 'genre', 'category',
-                            )
 
 
 class ReviewSerializer(serializers.ModelSerializer):
