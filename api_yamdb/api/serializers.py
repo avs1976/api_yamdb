@@ -133,22 +133,26 @@ class TitleGenreWriteSerializer(serializers.ModelSerializer):
 
 class ReviewSerializer(serializers.ModelSerializer):
     author = SlugRelatedField(slug_field='username', read_only=True)
+    title = SlugRelatedField(slug_field='id', read_only=True)
+
+    def create(self, validated_data):
+        if Review.objects.filter(
+                author=self.context['request'].user,
+                title=validated_data.get('title')).exists():
+            raise serializers.ValidationError('Повторный отзыв запрещен.')
+        return Review.objects.create(
+            **validated_data,
+        )
 
     class Meta:
         model = Review
-        fields = ('id', 'title', 'text', 'author', 'score', 'pub_date')
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Review.objects.all(),
-                fields=['title', 'author'],
-                message='Повторный отзыв запрешен',
-            )
-        ]
+        fields = ('id', 'text', 'title', 'author', 'score', 'pub_date')
 
 
 class CommentSerializer(serializers.ModelSerializer):
     author = SlugRelatedField(slug_field='username', read_only=True)
+    review = serializers.SlugRelatedField(slug_field='id', read_only=True)
 
     class Meta:
         model = Comment
-        fields = ('id', 'review', 'text', 'author', 'pub_date')
+        fields = ('id', 'text', 'review', 'author', 'pub_date')
