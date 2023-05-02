@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
-from rest_framework.validators import UniqueTogetherValidator
 
 from api_yamdb.settings import EMAIL, USERNAME_NAME
 from reviews.models import Category, Comment, Genre, Review, Title, TitleGenre
