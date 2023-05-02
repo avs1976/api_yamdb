@@ -73,13 +73,13 @@ class Review(models.Model):
         related_name='reviews',
         verbose_name='Произведение'
     )
+    text = models.TextField()
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name='reviews',
         verbose_name='Автор'
     )
-    text = models.TextField()
     score = models.IntegerField(
         verbose_name='Оценка',
         validators=[
@@ -98,7 +98,7 @@ class Review(models.Model):
         verbose_name_plural = 'Отзывы'
         constraints = [
             models.UniqueConstraint(
-                fields=('title', 'author', ),
+                fields=('title', 'author',),
                 name='unique_review'
             )
         ]

@@ -213,11 +213,12 @@ class Test04TitleAPI:
         }
         response = admin_client.patch(
             f'/api/v1/titles/{titles[0]["id"]}/', data=update_data
-        )
+        ) 
         assert response.status_code == HTTPStatus.OK, (
             'Проверьте, что PATCH-запрос администратора к '
             '`/api/v1/titles/{title_id}/` возвращает ответ со статусом 200.'
         )
+       
         data = response.json()
         assert data.get('name') == update_data['name'], (
             'Проверьте, что PATCH-запрос администратора к '

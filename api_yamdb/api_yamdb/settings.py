@@ -71,6 +71,8 @@ DATABASES = {
     }
 }
 
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
 
 # Password validation
 
@@ -111,26 +113,34 @@ STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
 
 AUTH_USER_MODEL = 'users.User'
 
+EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+
+EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
+
+DEFAULT_FROM_EMAIL = 'noreply@yamdb.ru'
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
     ],
+
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend'],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 5,
 }
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=10),
-    'ROTATE_REFRESH_TOKENS': False,
-    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+    "AUTH_HEADER_TYPES": ("Bearer",),
 }
-LIMIT_TEXT = 30
-LIMIT_SLUG = 50
-LIMIT_CHAT = 256
-LIMIT_USERNAME = 150
-LIMIT_EMAIL = 254
-MIN_LIMIT_VALUE = 1
-MAX_LIMIT_VALUE = 10
+CUT_TEXT: int = 30
+
+USERNAME_NAME: int = 150
+EMAIL: int = 254
+
+LEN_FOR_NAME: int = 256
+LEN_FOR_SLUG: int = 50
