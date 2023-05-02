@@ -16,18 +16,24 @@ class User(AbstractUser, ValidateUsername):
         (MODERATOR, 'Модератор'),
         (USER, 'Пользователь'),
     )
-
-    email = models.EmailField('Почта', max_length=EMAIL, unique=True)
     username = models.CharField(
         'Ник', max_length=USERNAME_NAME, unique=True
     )
-
+    email = models.EmailField('Почта', max_length=EMAIL, unique=True)
     role = models.CharField(
         'Роль',
         max_length=max([len(role) for role, name in ROLES]),
         choices=ROLES, default=USER
     )
     bio = models.TextField('Об авторе', null=True, blank=True)
+    first_name = models.CharField(max_length=100,
+                                  verbose_name='Имя',
+                                  help_text='Укажите Имя',
+                                  blank=True)
+    last_name = models.CharField(max_length=100,
+                                 verbose_name='Фамилия',
+                                 help_text='Укажите Фамилию',
+                                 blank=True)
 
     @property
     def is_moderator(self):
