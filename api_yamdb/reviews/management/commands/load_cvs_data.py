@@ -36,4 +36,3 @@ class Command(BaseCommand):
                         print(self.ERROR_MESSAGE.format(model.__name__, e))
 
         self.stdout.write(self.style.SUCCESS('Data loaded successfully'))
-
