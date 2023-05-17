@@ -147,3 +147,10 @@ EMAIL: int = 254
 
 LEN_FOR_NAME: int = 256
 LEN_FOR_SLUG: int = 50
+
+MIN_SCORE: int = 1
+MAX_SCORE: int = 10
+
+MAX_LENGTH: int = 1000 
+
+MAX_TEXT: int = 15

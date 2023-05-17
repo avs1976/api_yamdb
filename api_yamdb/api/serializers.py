@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
+from django.shortcuts import get_object_or_404
 
 from api_yamdb.settings import EMAIL, USERNAME_NAME
 from reviews.models import Category, Comment, Genre, Review, Title, TitleGenre
@@ -132,26 +133,55 @@ class TitleGenreWriteSerializer(serializers.ModelSerializer):
 
 class ReviewSerializer(serializers.ModelSerializer):
     author = SlugRelatedField(slug_field='username', read_only=True)
-    title = SlugRelatedField(slug_field='id', read_only=True)
 
-    def create(self, validated_data):
-        if Review.objects.filter(
-                author=self.context['request'].user,
-                title=validated_data.get('title')).exists():
+    # def validate(self, data):
+    #     request = self.context['request']
+    #     author = request.user
+    #     title_id = self.context['view'].kwargs.get('title_id')
+    #     title = get_object_or_404(Review, id=title_id)
+    #     if (request.method == 'POST' and Review.objects.filter(
+    #             title=title, author=author).exists()):
+    #         raise serializers.ValidationError(
+    #             'Повторный отзыв запрещен.'
+    #         )
+    #     return data
+
+    # def validate(self, validated_data):
+    #     if Review.objects.filter(
+    #             author=self.context['request'].user,
+    #             title=validated_data.get('title')).exists():
+    #         raise serializers.ValidationError('Повторный отзыв запрещен.')
+
+    def validate(self, data):
+        # request = self.context.get('request')
+        # author = request.user
+        # title_id = self.context.get('view').kwargs.get('title_id')
+        # title = get_object_or_404(Title, id=title_id)
+        if (self.context.get('request').method == 'POST' and Review.objects.filter(
+                author=self.context.get('request').user,
+                title=get_object_or_404(Title, id=self.context.get('view').kwargs.get('title_id'))).
+            exists()):
             raise serializers.ValidationError('Повторный отзыв запрещен.')
-        return Review.objects.create(
-            **validated_data,
-        )
+        return data
+
+    
+    # def create(self, validated_data):
+    #     if Review.objects.filter(
+    #             author=self.context['request'].user,
+    #             title=validated_data.get('title')).exists():
+    #         raise serializers.ValidationError('Повторный отзыв запрещен.')
+    #     return Review.objects.create(
+    #         **validated_data,
+    #     )
 
     class Meta:
         model = Review
-        fields = ('id', 'text', 'title', 'author', 'score', 'pub_date')
+        fields = ('id', 'text', 'author', 'score', 'pub_date')
 
 
 class CommentSerializer(serializers.ModelSerializer):
     author = SlugRelatedField(slug_field='username', read_only=True)
-    review = serializers.SlugRelatedField(slug_field='id', read_only=True)
 
     class Meta:
         model = Comment
-        fields = ('id', 'text', 'review', 'author', 'pub_date')
+        fields = ('id', 'text', 'author', 'pub_date')
