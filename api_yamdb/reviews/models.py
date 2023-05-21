@@ -1,26 +1,41 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 from users.models import User
-from api_yamdb.settings import MIN_SCORE, MAX_SCORE, MAX_LENGTH, MAX_TEXT
+from api_yamdb.settings import (MIN_SCORE, MAX_SCORE, MAX_LENGTH,
+                                MAX_TEXT, LEN_FOR_NAME, LEN_FOR_SLUG)
 
 
-class Genre(models.Model):
+class BaseModel(models.Model):
+    """Абстрактная модель для Жанров и Категорий"""
+    name = models.CharField('Название', max_length=LEN_FOR_NAME)
+    slug = models.SlugField('Слаг', unique=True,
+                            max_length=LEN_FOR_SLUG)
+
+    class Meta:
+        abstract = True
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name[:MAX_TEXT]
+
+
+class Genre(BaseModel):
     """Жанр произведений"""
-    name = models.CharField('Название', max_length=256)
-    slug = models.SlugField('Слаг', unique=True, max_length=50)
 
-    def __str__(self):
-        return self.name
+    class Meta:
+        verbose_name = 'Жанр'
+        verbose_name_plural = 'Жанры'
 
 
-class Category(models.Model):
+class Category(BaseModel):
     """Категории (типы) произведений («Фильмы», «Книги», «Музыка»)."""
-    name = models.CharField('Название', max_length=256)
-    slug = models.SlugField('Слаг', unique=True, max_length=50)
 
-    def __str__(self):
-        return self.name
+    class Meta:
+        verbose_name = 'Категория'
+        verbose_name_plural = 'Категории'
 
 
 class Title(models.Model):
@@ -28,9 +43,15 @@ class Title(models.Model):
     Произведения, к которым пишут отзывы (определённый фильм,
     книга или песенка).
     """
-    name = models.CharField('Название', max_length=256)
-    year = models.IntegerField('Год выхода')
-    description = models.TextField('Описание', blank=True, null=True)
+    def validate_year(value):
+        if value > timezone.now().year:
+            raise ValidationError(
+                'Год выхода не может быть больше текущего года.'
+            )
+
+    name = models.CharField('Название', max_length=LEN_FOR_NAME)
+    year = models.IntegerField('Год выхода', validators=[validate_year])
+    description = models.TextField('Описание', blank=False, null=True)
     genre = models.ManyToManyField(
         Genre, through='TitleGenre', verbose_name='Жанр'
     )
@@ -40,6 +61,14 @@ class Title(models.Model):
         related_name='title',
         verbose_name='Категория'
     )
+
+    class Meta:
+        ordering = ('-year',)
+        verbose_name = 'Произведение'
+        verbose_name_plural = 'Произведения'
+
+    def __str__(self):
+        return f'{self.name} ({self.year})'
 
 
 class TitleGenre(models.Model):
@@ -134,5 +163,4 @@ class Comment(BaseReviewComment):
         ordering = ('-pub_date',)
 
     def __str__(self):
-        #return str(self.author)
         return self.text[:MAX_TEXT]
