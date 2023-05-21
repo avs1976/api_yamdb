@@ -1,11 +1,11 @@
+from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.core.exceptions import ValidationError
 from django.utils import timezone
 
+from api_yamdb.settings import (LEN_FOR_NAME, LEN_FOR_SLUG, MAX_LENGTH,
+                                MAX_SCORE, MAX_TEXT, MIN_SCORE)
 from users.models import User
-from api_yamdb.settings import (MIN_SCORE, MAX_SCORE, MAX_LENGTH,
-                                MAX_TEXT, LEN_FOR_NAME, LEN_FOR_SLUG)
 
 
 class BaseModel(models.Model):
@@ -51,14 +51,14 @@ class Title(models.Model):
 
     name = models.CharField('Название', max_length=LEN_FOR_NAME)
     year = models.IntegerField('Год выхода', validators=[validate_year])
-    description = models.TextField('Описание', blank=False, null=True)
+    description = models.TextField('Описание', blank=True)
     genre = models.ManyToManyField(
         Genre, through='TitleGenre', verbose_name='Жанр'
     )
     category = models.ForeignKey(
         Category,
         on_delete=models.CASCADE,
-        related_name='title',
+        related_name='titles',
         verbose_name='Категория'
     )
 
@@ -83,17 +83,6 @@ class TitleGenre(models.Model):
         on_delete=models.CASCADE,
         verbose_name='Жанр'
     )
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=['title', 'genre'],
-                name='unique_title_genre_pair'
-            )
-        ]
-
-    def __str__(self):
-        return f'{self.title} {self.genre}'
 
 
 class BaseReviewComment(models.Model):

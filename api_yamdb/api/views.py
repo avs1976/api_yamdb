@@ -4,7 +4,7 @@ from django.core.mail import send_mail
 from django.db import IntegrityError
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
-from rest_framework import filters, status, viewsets
+from rest_framework import filters, status, viewsets, mixins
 from rest_framework.decorators import action, api_view
 from rest_framework.exceptions import MethodNotAllowed, ValidationError
 from rest_framework.filters import SearchFilter
@@ -14,7 +14,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from reviews.models import Category, Comment, Genre, Review, Title, TitleGenre
+from reviews.models import Category, Genre, Review, Title, TitleGenre
 from users.models import User
 
 from .filters import TitleFilter
@@ -66,6 +66,18 @@ def get_token(request):
             {'access': str(token.access_token)}, status=status.HTTP_200_OK
         )
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ListCreateDestroyGenericViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet
+):
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
+    permission_classes = (IsAdminOrReadOnly,)
+    lookup_field = 'slug'
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -129,14 +141,6 @@ class CommentViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         review = self.get_review()
         serializer.save(author=self.request.user, review=review)
-
-    # def get_queryset(self):
-    #     review = get_object_or_404(Review, id=self.kwargs.get('review_id'))
-    #     return review.comments.all()
-
-    # def perform_create(self, serializer):
-    #     review = get_object_or_404(Review, id=self.kwargs.get('review_id'))
-    #     serializer.save(author=self.request.user, review=review)
 
 
 class NoPatchMixin(UpdateModelMixin):

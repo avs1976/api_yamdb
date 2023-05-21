@@ -1,6 +1,6 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
-from django.shortcuts import get_object_or_404
 
 from api_yamdb.settings import EMAIL, USERNAME_NAME
 from reviews.models import Category, Comment, Genre, Review, Title, TitleGenre
@@ -45,11 +45,6 @@ class GenreSerializer(serializers.ModelSerializer):
         model = Genre
         fields = ('name', 'slug')
 
-    def validate_slug(self, value):
-        if Genre.objects.filter(slug=value).exists():
-            raise serializers.ValidationError("Slug already exists")
-        return value
-
 
 class CategorySerializer(serializers.ModelSerializer):
     """Сериализатор категорий"""
@@ -57,7 +52,6 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ('name', 'slug')
-        lookup_field = 'slug'
 
 
 class TitleWriteSerializer(serializers.ModelSerializer):
@@ -75,13 +69,20 @@ class TitleWriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Title
-        fields = '__all__'
+        fields = (
+            'id',
+            'name',
+            'year',
+            'description',
+            'category',
+            'genre',
+        )
 
 
 class TitleReadSerializer(serializers.ModelSerializer):
     genre = GenreSerializer(many=True)
     category = CategorySerializer()
-    rating = serializers.IntegerField(read_only=True)
+    rating = serializers.IntegerField()
 
     class Meta:
         model = Title
@@ -90,6 +91,14 @@ class TitleReadSerializer(serializers.ModelSerializer):
             'name',
             'year',
             'rating',
+            'description',
+            'category',
+            'genre',
+        )
+        read_only_fields = (
+            'id',
+            'name',
+            'year',
             'description',
             'category',
             'genre',
@@ -134,45 +143,15 @@ class TitleGenreWriteSerializer(serializers.ModelSerializer):
 class ReviewSerializer(serializers.ModelSerializer):
     author = SlugRelatedField(slug_field='username', read_only=True)
 
-    # def validate(self, data):
-    #     request = self.context['request']
-    #     author = request.user
-    #     title_id = self.context['view'].kwargs.get('title_id')
-    #     title = get_object_or_404(Review, id=title_id)
-    #     if (request.method == 'POST' and Review.objects.filter(
-    #             title=title, author=author).exists()):
-    #         raise serializers.ValidationError(
-    #             'Повторный отзыв запрещен.'
-    #         )
-    #     return data
-
-    # def validate(self, validated_data):
-    #     if Review.objects.filter(
-    #             author=self.context['request'].user,
-    #             title=validated_data.get('title')).exists():
-    #         raise serializers.ValidationError('Повторный отзыв запрещен.')
-
     def validate(self, data):
-        # request = self.context.get('request')
-        # author = request.user
-        # title_id = self.context.get('view').kwargs.get('title_id')
-        # title = get_object_or_404(Title, id=title_id)
+
         if (self.context.get('request').method == 'POST' and Review.objects.filter(
                 author=self.context.get('request').user,
-                title=get_object_or_404(Title, id=self.context.get('view').kwargs.get('title_id'))).
-            exists()):
+                title=get_object_or_404(Title,
+                                        id=self.context.get('view').kwargs.get('title_id'))).
+           exists()):
             raise serializers.ValidationError('Повторный отзыв запрещен.')
         return data
-
-    
-    # def create(self, validated_data):
-    #     if Review.objects.filter(
-    #             author=self.context['request'].user,
-    #             title=validated_data.get('title')).exists():
-    #         raise serializers.ValidationError('Повторный отзыв запрещен.')
-    #     return Review.objects.create(
-    #         **validated_data,
-    #     )
 
     class Meta:
         model = Review
