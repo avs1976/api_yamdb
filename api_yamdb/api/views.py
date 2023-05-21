@@ -143,15 +143,7 @@ class CommentViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user, review=review)
 
 
-class NoPatchMixin(UpdateModelMixin):
-    def update(self, request, *args, **kwargs):
-        return Response(
-            {'detail': 'Метод PATCH запрещен для данного ресурса.'},
-            status=status.HTTP_405_METHOD_NOT_ALLOWED
-        )
-
-
-class CategoryViewSet(NoPatchMixin, viewsets.ModelViewSet):
+class CategoryViewSet(ListCreateDestroyGenericViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = (IsAdminOrReadOnly,)
@@ -167,10 +159,8 @@ class CategoryViewSet(NoPatchMixin, viewsets.ModelViewSet):
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.annotate(
         rating=Avg('reviews__score')).order_by('name')
-    # serializer_class = TitleWriteSerializer
     permission_classes = (IsAdminOrReadOnly,)
     filterset_class = TitleFilter
-    pagination_class = LimitOffsetPagination
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
@@ -178,7 +168,7 @@ class TitleViewSet(viewsets.ModelViewSet):
         return TitleWriteSerializer
 
 
-class GenreViewSet(viewsets.ModelViewSet):
+class GenreViewSet(ListCreateDestroyGenericViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = [IsAdminOrReadOnly]
