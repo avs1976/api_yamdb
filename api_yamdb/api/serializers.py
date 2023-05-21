@@ -105,41 +105,6 @@ class TitleReadSerializer(serializers.ModelSerializer):
         )
 
 
-class TitleGenreReadSerializer(serializers.ModelSerializer):
-    genre = GenreSerializer()
-
-    class Meta:
-        model = TitleGenre
-        fields = ('id', 'genre',)
-
-
-class TitleGenreWriteSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = TitleGenre
-        fields = ('id', 'genre', 'title')
-
-    def validate_genre(self, value):
-        if not value:
-            return value
-        try:
-            genre = Genre.objects.get(slug=value['slug'])
-        except Genre.DoesNotExist:
-            raise serializers.ValidationError("Invalid genre slug")
-        return genre
-
-    def create(self, validated_data):
-        genre_data = validated_data.pop('genre')
-        genre = Genre.objects.create(**genre_data)
-        title_genre = TitleGenre.objects.create(genre=genre, **validated_data)
-        return title_genre
-
-    def update(self, instance, validated_data):
-        genre_data = validated_data.pop('genre')
-        instance.genre = Genre.objects.get(slug=genre_data['slug'])
-        instance.save()
-        return instance
-
-
 class ReviewSerializer(serializers.ModelSerializer):
     author = SlugRelatedField(slug_field='username', read_only=True)
 

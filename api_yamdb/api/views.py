@@ -4,7 +4,7 @@ from django.core.mail import send_mail
 from django.db import IntegrityError
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
-from rest_framework import filters, status, viewsets, mixins
+from rest_framework import filters, mixins, status, viewsets
 from rest_framework.decorators import action, api_view
 from rest_framework.exceptions import MethodNotAllowed, ValidationError
 from rest_framework.filters import SearchFilter
@@ -14,7 +14,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from reviews.models import Category, Genre, Review, Title, TitleGenre
+from reviews.models import Category, Genre, Review, Title
 from users.models import User
 
 from .filters import TitleFilter
@@ -22,7 +22,7 @@ from .permissions import (IsAdmin, IsAdminModeratorAuthorOrReadOnly,
                           IsAdminOrReadOnly)
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, RegistrationSerializer,
-                          ReviewSerializer, TitleGenreReadSerializer,
+                          ReviewSerializer,
                           TitleReadSerializer, TitleWriteSerializer,
                           TokenSerializer, UserEditSerializer, UserSerializer)
 
@@ -206,9 +206,3 @@ class GenreViewSet(viewsets.ModelViewSet):
             return Response({'detail': 'GET метод не разрешен.'},
                             status=status.HTTP_405_METHOD_NOT_ALLOWED)
         return super().handle_exception(exc)
-
-
-class TitleGenreViewSet(viewsets.ModelViewSet):
-    queryset = TitleGenre.objects.prefetch_related('genre', 'title').all()
-    serializer_class = TitleGenreReadSerializer
-    permission_classes = (IsAdminOrReadOnly)
