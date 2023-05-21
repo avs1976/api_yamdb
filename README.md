@@ -13,11 +13,14 @@
 ## Клонируем репозиторий
 git clone https://github.com/avs1976/api_yamdb
 cd api_yamdb
+
 ## Создаём виртуальное окружение (venv)
 python -m venv venv
 ./venv/Scripts/Activate
+
 ## Загружаем все нужные библитеки
 pip install -r requirements.txt
+
 ## Выполняем миграции и запускаем проект
 python manage.py migrate
 python manage.py runserver
