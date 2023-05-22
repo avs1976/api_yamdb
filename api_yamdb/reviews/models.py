@@ -86,6 +86,7 @@ class TitleGenre(models.Model):
 
 
 class BaseReviewComment(models.Model):
+    """Абстрактная модель для Отзывов и Комментариев"""
     text = models.TextField(
         verbose_name='текст',
         max_length=MAX_LENGTH,
@@ -106,6 +107,7 @@ class BaseReviewComment(models.Model):
 
 
 class Review(BaseReviewComment):
+    """Отзывы на произведения"""
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
@@ -139,6 +141,7 @@ class Review(BaseReviewComment):
 
 
 class Comment(BaseReviewComment):
+    """Комментарии к отзывам"""
     review = models.ForeignKey(
         Review,
         on_delete=models.CASCADE,
