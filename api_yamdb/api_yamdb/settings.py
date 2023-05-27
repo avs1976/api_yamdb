@@ -1,11 +1,12 @@
 import os
 from datetime import timedelta
 from pathlib import Path
+from django.core.management.utils import get_random_secret_key
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'p&l%385148kslhtyn^##a1)ilz@4zqj=rq&agdol^##zgl9(vs'
+SECRET_KEY = get_random_secret_key()
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -147,3 +148,10 @@ EMAIL: int = 254
 
 LEN_FOR_NAME: int = 256
 LEN_FOR_SLUG: int = 50
+
+MIN_SCORE: int = 1
+MAX_SCORE: int = 10
+
+MAX_LENGTH: int = 1000
+
+MAX_TEXT: int = 15

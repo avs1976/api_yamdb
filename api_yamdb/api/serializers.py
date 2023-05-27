@@ -1,8 +1,9 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 
 from api_yamdb.settings import EMAIL, USERNAME_NAME
-from reviews.models import Category, Comment, Genre, Review, Title, TitleGenre
+from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import User
 from users.validators import ValidateUsername
 
@@ -44,11 +45,6 @@ class GenreSerializer(serializers.ModelSerializer):
         model = Genre
         fields = ('name', 'slug')
 
-    def validate_slug(self, value):
-        if Genre.objects.filter(slug=value).exists():
-            raise serializers.ValidationError("Slug already exists")
-        return value
-
 
 class CategorySerializer(serializers.ModelSerializer):
     """Сериализатор категорий"""
@@ -56,7 +52,6 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ('name', 'slug')
-        lookup_field = 'slug'
 
 
 class TitleWriteSerializer(serializers.ModelSerializer):
@@ -74,13 +69,20 @@ class TitleWriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Title
-        fields = '__all__'
+        fields = (
+            'id',
+            'name',
+            'year',
+            'description',
+            'category',
+            'genre',
+        )
 
 
 class TitleReadSerializer(serializers.ModelSerializer):
     genre = GenreSerializer(many=True)
     category = CategorySerializer()
-    rating = serializers.IntegerField(read_only=True)
+    rating = serializers.IntegerField()
 
     class Meta:
         model = Title
@@ -93,65 +95,39 @@ class TitleReadSerializer(serializers.ModelSerializer):
             'category',
             'genre',
         )
-
-
-class TitleGenreReadSerializer(serializers.ModelSerializer):
-    genre = GenreSerializer()
-
-    class Meta:
-        model = TitleGenre
-        fields = ('id', 'genre',)
-
-
-class TitleGenreWriteSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = TitleGenre
-        fields = ('id', 'genre', 'title')
-
-    def validate_genre(self, value):
-        if not value:
-            return value
-        try:
-            genre = Genre.objects.get(slug=value['slug'])
-        except Genre.DoesNotExist:
-            raise serializers.ValidationError("Invalid genre slug")
-        return genre
-
-    def create(self, validated_data):
-        genre_data = validated_data.pop('genre')
-        genre = Genre.objects.create(**genre_data)
-        title_genre = TitleGenre.objects.create(genre=genre, **validated_data)
-        return title_genre
-
-    def update(self, instance, validated_data):
-        genre_data = validated_data.pop('genre')
-        instance.genre = Genre.objects.get(slug=genre_data['slug'])
-        instance.save()
-        return instance
+        read_only_fields = (
+            'id',
+            'name',
+            'year',
+            'description',
+            'category',
+            'genre',
+        )
 
 
 class ReviewSerializer(serializers.ModelSerializer):
     author = SlugRelatedField(slug_field='username', read_only=True)
-    title = SlugRelatedField(slug_field='id', read_only=True)
 
-    def create(self, validated_data):
-        if Review.objects.filter(
-                author=self.context['request'].user,
-                title=validated_data.get('title')).exists():
+    def validate(self, data):
+
+        if (self.context.get('request').method == 'POST'
+            and Review.objects.filter(
+                author=self.context.get('request').user,
+                title=get_object_or_404(Title,
+                                        id=self.context.get('view').kwargs.get(
+                                            'title_id'))).
+           exists()):
             raise serializers.ValidationError('Повторный отзыв запрещен.')
-        return Review.objects.create(
-            **validated_data,
-        )
+        return data
 
     class Meta:
         model = Review
-        fields = ('id', 'text', 'title', 'author', 'score', 'pub_date')
+        fields = ('id', 'text', 'author', 'score', 'pub_date')
 
 
 class CommentSerializer(serializers.ModelSerializer):
     author = SlugRelatedField(slug_field='username', read_only=True)
-    review = serializers.SlugRelatedField(slug_field='id', read_only=True)
 
     class Meta:
         model = Comment
-        fields = ('id', 'text', 'review', 'author', 'pub_date')
+        fields = ('id', 'text', 'author', 'pub_date')
