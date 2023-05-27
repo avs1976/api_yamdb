@@ -45,7 +45,54 @@ python manage.py runserver
 
 **GET: /api/v1/titles/** - все произведения
 
+```
+{
+  "count": 0,
+  "next": "string",
+  "previous": "string",
+  "results": [
+    {
+      "id": 0,
+      "name": "string",
+      "year": 0,
+      "rating": 0,
+      "description": "string",
+      "genre": [
+        {
+          "name": "string",
+          "slug": "string"
+        }
+      ],
+      "category": {
+        "name": "string",
+        "slug": "string"
+      }
+    }
+  ]
+}
+```
+
 **POST: /api/v1/titles/** - добавить произведение
+
+```
+{
+  "id": 0,
+  "name": "string",
+  "year": 0,
+  "rating": 0,
+  "description": "string",
+  "genre": [
+    {
+      "name": "string",
+      "slug": "string"
+    }
+  ],
+  "category": {
+    "name": "string",
+    "slug": "string"
+  }
+}
+```
 
 **PATCH: /api/v1/titles/{titles_id}/** - изменить произведение
 
@@ -55,7 +102,60 @@ python manage.py runserver
 
 **POST: /api/v1/titles/{title_id}/reviews/** - создать новый отзыв
 
+```
+{
+  "id": 0,
+  "text": "string",
+  "author": "string",
+  "score": 1,
+  "pub_date": "2019-08-24T14:15:22Z"
+}
+```
+
 **GET: /api/v1/titles/{title_id}/reviews/** - отзыв о произведении
+
+```
+{
+  "count": 0,
+  "next": "string",
+  "previous": "string",
+  "results": [
+    {
+      "id": 0,
+      "text": "string",
+      "author": "string",
+      "score": 1,
+      "pub_date": "2023-08-24T14:15:22Z"
+    }
+  ]
+}
+```
+**GET: /api/v1/titles/{title_id}/reviews/{review_id}/comments/** - комментариев к отзыву
+```
+{
+  "count": 0,
+  "next": "string",
+  "previous": "string",
+  "results": [
+    {
+      "id": 0,
+      "text": "string",
+      "author": "string",
+      "pub_date": "2019-08-24T14:15:22Z"
+    }
+  ]
+}
+```
+
+**POST: /api/v1/titles/{title_id}/reviews/{review_id}/comments/** - создать новый отзыв
+```
+{
+  "id": 0,
+  "text": "string",
+  "author": "string",
+  "pub_date": "2019-08-24T14:15:22Z"
+}
+```
 
 # Авторы
 
