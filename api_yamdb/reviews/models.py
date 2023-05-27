@@ -2,10 +2,10 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils import timezone
-from users.models import User
 
 from api_yamdb.settings import (LEN_FOR_NAME, LEN_FOR_SLUG, MAX_LENGTH,
                                 MAX_SCORE, MAX_TEXT, MIN_SCORE)
+from users.models import User
 
 
 class BaseModel(models.Model):

@@ -1,11 +1,11 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
-from reviews.models import Category, Comment, Genre, Review, Title, TitleGenre
-from users.models import User
-from users.validators import ValidateUsername
 
 from api_yamdb.settings import EMAIL, USERNAME_NAME
+from reviews.models import Category, Comment, Genre, Review, Title
+from users.models import User
+from users.validators import ValidateUsername
 
 
 class UserSerializer(serializers.ModelSerializer, ValidateUsername):
@@ -110,10 +110,12 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
 
-        if (self.context.get('request').method == 'POST' and Review.objects.filter(
+        if (self.context.get('request').method == 'POST'
+            and Review.objects.filter(
                 author=self.context.get('request').user,
                 title=get_object_or_404(Title,
-                                        id=self.context.get('view').kwargs.get('title_id'))).
+                                        id=self.context.get('view').kwargs.get(
+                                            'title_id'))).
            exists()):
             raise serializers.ValidationError('Повторный отзыв запрещен.')
         return data
