@@ -40,7 +40,6 @@ class Title(models.Model):
     Произведения, к которым пишут отзывы (определённый фильм,
     книга или песенка).
     """
-
     name = models.CharField('Название', max_length=settings.LEN_FOR_NAME)
     year = models.IntegerField('Год выхода', validators=[validate_year])
     description = models.TextField('Описание', blank=True)
@@ -97,7 +96,11 @@ class BaseReviewComment(models.Model):
     )
 
     class Meta:
+        ordering = ('pub_date',)
         abstract = True
+
+    def __str__(self):
+        return self.text[:settings.MAX_TEXT]
 
 
 class Review(BaseReviewComment):
@@ -127,10 +130,6 @@ class Review(BaseReviewComment):
                 name='unique_review'
             )
         ]
-        ordering = ('pub_date',)
-
-    def __str__(self):
-        return self.text[:settings.MAX_TEXT]
 
 
 class Comment(BaseReviewComment):
@@ -145,7 +144,3 @@ class Comment(BaseReviewComment):
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
         default_related_name = 'comments'
-        ordering = ('-pub_date',)
-
-    def __str__(self):
-        return self.text[:settings.MAX_TEXT]

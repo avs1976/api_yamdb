@@ -113,13 +113,13 @@ class ReviewSerializer(serializers.ModelSerializer):
         fields = ('id', 'text', 'author', 'score', 'pub_date')
 
     def validate(self, data):
-        if (self.context.get('request').method == 'POST'
-            and Review.objects.filter(
+
+        if not self.context.get('request').method == 'POST':
+            return data
+        if Review.objects.filter(
                 author=self.context.get('request').user,
-                title=get_object_or_404(Title,
-                                        id=self.context.get('view').kwargs.get(
-                                            'title_id'))).
-           exists()):
+                title=get_object_or_404(Title, id=self.context.get('view')
+                                        .kwargs.get('title_id'))).exists():
             raise serializers.ValidationError('Повторный отзыв запрещен.')
         return data
 
