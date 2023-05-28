@@ -1,9 +1,8 @@
-from django.core.exceptions import ValidationError
+from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.utils import timezone
-from django.conf import settings
 
+from reviews.validators import validate_year
 from users.models import User
 
 
@@ -42,11 +41,6 @@ class Title(models.Model):
     Произведения, к которым пишут отзывы (определённый фильм,
     книга или песенка).
     """
-    def validate_year(value):
-        if value > timezone.now().year:
-            raise ValidationError(
-                'Год выхода не может быть больше текущего года.'
-            )
 
     name = models.CharField('Название', max_length=settings.LEN_FOR_NAME)
     year = models.IntegerField('Год выхода', validators=[validate_year])
@@ -56,7 +50,9 @@ class Title(models.Model):
     )
     category = models.ForeignKey(
         Category,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
         related_name='titles',
         verbose_name='Категория'
     )
@@ -115,12 +111,11 @@ class Review(BaseReviewComment):
     score = models.IntegerField(
         verbose_name='Оценка',
         validators=[
-            MinValueValidator(settings.MIN_SCORE),
-            MaxValueValidator(settings.MAX_SCORE),
+            MinValueValidator(
+                settings.MIN_SCORE, message='Оценка должна быть от 1 до 10.'),
+            MaxValueValidator(
+                settings.MAX_SCORE, message='Оценка должна быть от 1 до 10.'),
         ],
-        error_messages={
-            'unique': 'Оценка от 1 до 10'
-        }
     )
 
     class Meta:
