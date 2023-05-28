@@ -40,7 +40,6 @@ class Title(models.Model):
     Произведения, к которым пишут отзывы (определённый фильм,
     книга или песенка).
     """
-
     name = models.CharField('Название', max_length=settings.LEN_FOR_NAME)
     year = models.IntegerField('Год выхода', validators=[validate_year])
     description = models.TextField('Описание', blank=True)
