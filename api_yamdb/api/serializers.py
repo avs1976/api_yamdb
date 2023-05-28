@@ -25,7 +25,7 @@ class RegistrationSerializer(serializers.Serializer, ValidateUsername):
     username = serializers.CharField(
         required=True, max_length=settings.USERNAME_NAME
     )
-    email = serializers.EmailField(required=True, max_length=settings.EMAIL)
+    email = serializers.EmailField(max_length=settings.EMAIL)
 
 
 class TokenSerializer(serializers.Serializer, ValidateUsername):
