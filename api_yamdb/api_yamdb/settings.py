@@ -1,6 +1,7 @@
 import os
 from datetime import timedelta
 from pathlib import Path
+
 from django.core.management.utils import get_random_secret_key
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -155,3 +156,5 @@ MAX_SCORE: int = 10
 MAX_LENGTH: int = 1000
 
 MAX_TEXT: int = 15
+
+LEN_ROLE: int = 25

@@ -4,15 +4,14 @@ from django.core.mail import send_mail
 from django.db import IntegrityError
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
-from rest_framework import filters, mixins, status, viewsets
-from rest_framework.decorators import action, api_view
-from rest_framework.exceptions import MethodNotAllowed, ValidationError
+from rest_framework import filters, mixins, permissions, status, viewsets
+from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.exceptions import ValidationError
 from rest_framework.filters import SearchFilter
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import RefreshToken
-
+from rest_framework_simplejwt.tokens import AccessToken
 from reviews.models import Category, Genre, Review, Title
 from users.models import User
 
@@ -27,7 +26,8 @@ from .serializers import (CategorySerializer, CommentSerializer,
 
 
 @api_view(['POST'])
-def register_user(request, id='id'):
+@permission_classes([AllowAny])
+def register_user(request,):
     """Функция регистрации user, генерации и отправки кода на почту"""
 
     serializer = RegistrationSerializer(data=request.data)
@@ -35,20 +35,20 @@ def register_user(request, id='id'):
     try:
         user, _ = User.objects.get_or_create(**serializer.validated_data)
     except IntegrityError:
-        raise ValidationError(
-            'username или email заняты!', status.HTTP_400_BAD_REQUEST
-        )
+        raise ValidationError('username или email заняты!')
     confirmation_code = default_token_generator.make_token(user)
     send_mail(
         subject='Регистрация в проекте YaMDb.',
         message=f'Ваш код подтверждения: {confirmation_code}',
         from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[user.email]
+        recipient_list=[user.email],
+        fail_silently=False,
     )
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def get_token(request):
     """Функция выдачи токена"""
 
@@ -58,13 +58,12 @@ def get_token(request):
         User, username=serializer.validated_data['username']
     )
     if default_token_generator.check_token(
-            user, serializer.validated_data['confirmation_code']
-    ):
-        token = RefreshToken.for_user(user)
+            user, serializer.validated_data['confirmation_code']):
+        token = AccessToken.for_user(user)
         return Response(
             {'access': str(token.access_token)}, status=status.HTTP_200_OK
         )
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    raise ValidationError('Invalid confirmation code.')
 
 
 class ListCreateDestroyGenericViewSet(
@@ -76,6 +75,7 @@ class ListCreateDestroyGenericViewSet(
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     permission_classes = (IsAdminOrReadOnly,)
+    pagination_class = LimitOffsetPagination
     lookup_field = 'slug'
 
 
@@ -88,7 +88,6 @@ class UserViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
     lookup_field = 'username'
-    # lookup_value_regex = '[^/]+'
     http_method_names = ['get', 'post', 'patch', 'delete']
 
     @action(
@@ -145,14 +144,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 class CategoryViewSet(ListCreateDestroyGenericViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = (IsAdminOrReadOnly,)
-    lookup_field = 'slug'
-    pagination_class = LimitOffsetPagination
     filter_backends = (SearchFilter,)
-    search_fields = ('name',)
-
-    def retrieve(self, request, *args, **kwargs):
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -162,41 +154,11 @@ class TitleViewSet(viewsets.ModelViewSet):
     filterset_class = TitleFilter
 
     def get_serializer_class(self):
-        if self.request.method in ['GET', 'HEAD', 'OPTIONS']:
+        if self.request.method in permissions.SAFE_METHODS:
             return TitleReadSerializer
         return TitleWriteSerializer
-
-    @action(detail=False, methods=['GET', 'HEAD', 'OPTIONS'])
-    def safe_method_action(self, request):
-        serializer = self.get_serializer(self.queryset, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class GenreViewSet(ListCreateDestroyGenericViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = (IsAdminOrReadOnly,)
-    pagination_class = LimitOffsetPagination
-    filter_backends = (SearchFilter,)
-    lookup_field = 'slug'
-    filter_backends = (SearchFilter,)
-    search_fields = ('name',)
-
-    def partial_update(self, request, *args, **kwargs):
-        raise MethodNotAllowed('PATCH')
-
-    def retrieve(self, request, *args, **kwargs):
-        raise MethodNotAllowed('GET')
-
-    def handle_exception(self, exc):
-        if isinstance(
-            exc, MethodNotAllowed
-        ) and self.request.method == 'PATCH':
-            return Response({'detail': 'PATCH метод не разрешен.'},
-                            status=status.HTTP_405_METHOD_NOT_ALLOWED)
-        elif isinstance(
-            exc, MethodNotAllowed
-        ) and self.request.method == 'GET':
-            return Response({'detail': 'GET метод не разрешен.'},
-                            status=status.HTTP_405_METHOD_NOT_ALLOWED)
-        return super().handle_exception(exc)

@@ -1,25 +1,22 @@
-from django.core.exceptions import ValidationError
+from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.utils import timezone
-
-from api_yamdb.settings import (LEN_FOR_NAME, LEN_FOR_SLUG, MAX_LENGTH,
-                                MAX_SCORE, MAX_TEXT, MIN_SCORE)
+from reviews.validators import validate_year
 from users.models import User
 
 
 class BaseModel(models.Model):
     """Абстрактная модель для Жанров и Категорий"""
-    name = models.CharField('Название', max_length=LEN_FOR_NAME)
+    name = models.CharField('Название', max_length=settings.LEN_FOR_NAME)
     slug = models.SlugField('Слаг', unique=True,
-                            max_length=LEN_FOR_SLUG)
+                            max_length=settings.LEN_FOR_SLUG)
 
     class Meta:
         abstract = True
         ordering = ['name']
 
     def __str__(self):
-        return self.name[:MAX_TEXT]
+        return self.name[:settings.MAX_TEXT]
 
 
 class Genre(BaseModel):
@@ -43,13 +40,7 @@ class Title(models.Model):
     Произведения, к которым пишут отзывы (определённый фильм,
     книга или песенка).
     """
-    def validate_year(value):
-        if value > timezone.now().year:
-            raise ValidationError(
-                'Год выхода не может быть больше текущего года.'
-            )
-
-    name = models.CharField('Название', max_length=LEN_FOR_NAME)
+    name = models.CharField('Название', max_length=settings.LEN_FOR_NAME)
     year = models.IntegerField('Год выхода', validators=[validate_year])
     description = models.TextField('Описание', blank=True)
     genre = models.ManyToManyField(
@@ -57,7 +48,9 @@ class Title(models.Model):
     )
     category = models.ForeignKey(
         Category,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
         related_name='titles',
         verbose_name='Категория'
     )
@@ -89,7 +82,7 @@ class BaseReviewComment(models.Model):
     """Абстрактная модель для Отзывов и Комментариев"""
     text = models.TextField(
         verbose_name='текст',
-        max_length=MAX_LENGTH,
+        max_length=settings.MAX_LENGTH,
     )
     author = models.ForeignKey(
         User,
@@ -103,7 +96,11 @@ class BaseReviewComment(models.Model):
     )
 
     class Meta:
+        ordering = ('pub_date',)
         abstract = True
+
+    def __str__(self):
+        return self.text[:settings.MAX_TEXT]
 
 
 class Review(BaseReviewComment):
@@ -116,12 +113,11 @@ class Review(BaseReviewComment):
     score = models.IntegerField(
         verbose_name='Оценка',
         validators=[
-            MinValueValidator(MIN_SCORE),
-            MaxValueValidator(MAX_SCORE),
+            MinValueValidator(
+                settings.MIN_SCORE, message='Оценка должна быть от 1 до 10.'),
+            MaxValueValidator(
+                settings.MAX_SCORE, message='Оценка должна быть от 1 до 10.'),
         ],
-        error_messages={
-            'unique': 'Оценка от 1 до 10'
-        }
     )
 
     class Meta:
@@ -134,10 +130,6 @@ class Review(BaseReviewComment):
                 name='unique_review'
             )
         ]
-        ordering = ('pub_date',)
-
-    def __str__(self):
-        return self.text[:MAX_TEXT]
 
 
 class Comment(BaseReviewComment):
@@ -152,7 +144,3 @@ class Comment(BaseReviewComment):
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
         default_related_name = 'comments'
-        ordering = ('-pub_date',)
-
-    def __str__(self):
-        return self.text[:MAX_TEXT]
