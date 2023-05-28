@@ -168,7 +168,7 @@ python manage.py load_cvs_data
 }
 ```
 
-# Авторы
+> # Авторы
 
 * **Алексей Шевцов** (https://github.com/avs1976)
 * **Максим Матвеев** (https://github.com/Impossible14)
