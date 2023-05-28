@@ -5,7 +5,6 @@ from reviews.models import Title
 
 class TitleFilter(FilterSet):
     name = CharFilter(field_name='name', lookup_expr='icontains')
-    # year = flt.NumberFilter(field_name='year')
     category = CharFilter(field_name='category__slug')
     genre = CharFilter(field_name='genre__slug')
 
