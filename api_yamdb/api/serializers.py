@@ -22,19 +22,15 @@ class UserSerializer(serializers.ModelSerializer, ValidateUsername):
 class RegistrationSerializer(serializers.Serializer, ValidateUsername):
     """Сериализатор регистрации User"""
 
-    username = serializers.CharField(
-        required=True, max_length=settings.USERNAME_NAME
-    )
+    username = serializers.CharField(max_length=settings.USERNAME_NAME)
     email = serializers.EmailField(max_length=settings.EMAIL)
 
 
 class TokenSerializer(serializers.Serializer, ValidateUsername):
     """Сериализатор токена"""
 
-    username = serializers.CharField(
-        required=True, max_length=settings.USERNAME_NAME
-    )
-    confirmation_code = serializers.CharField(required=True)
+    username = serializers.CharField(max_length=settings.USERNAME_NAME)
+    confirmation_code = serializers.CharField()
 
 
 class UserEditSerializer(UserSerializer):
