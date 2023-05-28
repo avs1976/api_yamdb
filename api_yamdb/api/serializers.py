@@ -2,7 +2,8 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 
-from api_yamdb.settings import EMAIL, USERNAME_NAME
+# from api_yamdb.settings import EMAIL, USERNAME_NAME
+from django.conf import settings
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import User
 from users.validators import ValidateUsername
@@ -21,14 +22,18 @@ class UserSerializer(serializers.ModelSerializer, ValidateUsername):
 class RegistrationSerializer(serializers.Serializer, ValidateUsername):
     """Сериализатор регистрации User"""
 
-    username = serializers.CharField(required=True, max_length=USERNAME_NAME)
-    email = serializers.EmailField(required=True, max_length=EMAIL)
+    username = serializers.CharField(
+        required=True, max_length=settings.USERNAME_NAME
+    )
+    email = serializers.EmailField(required=True, max_length=settings.EMAIL)
 
 
 class TokenSerializer(serializers.Serializer, ValidateUsername):
     """Сериализатор токена"""
 
-    username = serializers.CharField(required=True, max_length=USERNAME_NAME)
+    username = serializers.CharField(
+        required=True, max_length=settings.USERNAME_NAME
+    )
     confirmation_code = serializers.CharField(required=True)
 
 
@@ -108,8 +113,11 @@ class TitleReadSerializer(serializers.ModelSerializer):
 class ReviewSerializer(serializers.ModelSerializer):
     author = SlugRelatedField(slug_field='username', read_only=True)
 
-    def validate(self, data):
+    class Meta:
+        model = Review
+        fields = ('id', 'text', 'author', 'score', 'pub_date')
 
+    def validate(self, data):
         if (self.context.get('request').method == 'POST'
             and Review.objects.filter(
                 author=self.context.get('request').user,
@@ -119,10 +127,6 @@ class ReviewSerializer(serializers.ModelSerializer):
            exists()):
             raise serializers.ValidationError('Повторный отзыв запрещен.')
         return data
-
-    class Meta:
-        model = Review
-        fields = ('id', 'text', 'author', 'score', 'pub_date')
 
 
 class CommentSerializer(serializers.ModelSerializer):
