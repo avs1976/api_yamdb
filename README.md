@@ -15,22 +15,20 @@
 git clone https://github.com/avs1976/api_yamdb
 cd api_yamdb
 ```
-
 > ## Создаём виртуальное окружение (venv)
 ```
 python -m venv venv
 ./venv/Scripts/Activate
 ```
-
 > ## Загружаем все нужные библитеки
+```
 pip install -r requirements.txt
-
+```
 > ## Выполняем миграции и запускаем проект
 ```
 python manage.py migrate
 python manage.py runserver
 ```
-
 > # Краткое описание моделей:
 
 * **User**: модель пользователей, которая расширяет модель AbstractUser. Она имеет поля для роли, биографии, электронной почты и кода подтверждения, а также методы для определения уровней доступа.
@@ -40,6 +38,14 @@ python manage.py runserver
 * **TitleGenre**: модель, которая связывает произведение и жанр.
 * **Review**: модель отзывов на произведения. Имеет заголовок, автора, текст, оценку и дату публикации.
 * **Comment**: модель комментариев к отзывам. Имеет текст, автора и дату публикации.
+
+> # Наполнение базы данных:
+
+В репозитории, в директории ```/api_yamdb/static/data```, подготовлены несколько файлов в формате ```csv``` с контентом для ресурсов ```Users, Titles, Categories, Genres, Reviews и Comments```. 
+Для заполния базы данных контентом из приложенных csv-файлов необходимо запустить файл ```load_cvs_data.py```, расположенный в папке ```reviews/management/commands```:
+```
+python manage.py load_cvs_data
+```
 
 > # Примеры использования:
 
@@ -165,6 +171,6 @@ python manage.py runserver
 
 # Авторы
 
-* Алексей Шевцов (https://github.com/avs1976)
-* Максим Матвеев (https://github.com/Impossible14)
-* Яна Брылева (https://github.com/kettaryfox48)
+* **Алексей Шевцов** (https://github.com/avs1976)
+* **Максим Матвеев** (https://github.com/Impossible14)
+* **Яна Брылева** (https://github.com/kettaryfox48)
