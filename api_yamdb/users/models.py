@@ -1,9 +1,11 @@
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-from api_yamdb.settings import EMAIL, USERNAME_NAME
-
 from .validators import ValidateUsername
+
+# from api_yamdb.settings import EMAIL, USERNAME_NAME
+
 
 
 class User(AbstractUser, ValidateUsername):
@@ -17,9 +19,9 @@ class User(AbstractUser, ValidateUsername):
         (USER, 'Пользователь'),
     )
     username = models.CharField(
-        'Ник', max_length=USERNAME_NAME, unique=True
+        'Ник', max_length=settings.USERNAME_NAME, unique=True
     )
-    email = models.EmailField('Почта', max_length=EMAIL, unique=True)
+    email = models.EmailField('Почта', max_length=settings.EMAIL, unique=True)
     role = models.CharField(
         'Роль',
         max_length=max([len(role) for role, name in ROLES]),
