@@ -147,9 +147,6 @@ class CategoryViewSet(ListCreateDestroyGenericViewSet):
     serializer_class = CategorySerializer
     filter_backends = (SearchFilter,)
 
-    # def retrieve(self, request, *args, **kwargs):
-    #     return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
 
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.annotate(
@@ -162,37 +159,7 @@ class TitleViewSet(viewsets.ModelViewSet):
             return TitleReadSerializer
         return TitleWriteSerializer
 
-    @action(detail=False, methods=['GET', 'HEAD', 'OPTIONS'])
-    def safe_method_action(self, request):
-        serializer = self.get_serializer(self.queryset, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
 
 class GenreViewSet(ListCreateDestroyGenericViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = (IsAdminOrReadOnly,)
-    pagination_class = LimitOffsetPagination
-    filter_backends = (SearchFilter,)
-    lookup_field = 'slug'
-    filter_backends = (SearchFilter,)
-    search_fields = ('name',)
-
-    def partial_update(self, request, *args, **kwargs):
-        raise MethodNotAllowed('PATCH')
-
-    def retrieve(self, request, *args, **kwargs):
-        raise MethodNotAllowed('GET')
-
-    def handle_exception(self, exc):
-        if isinstance(
-            exc, MethodNotAllowed
-        ) and self.request.method == 'PATCH':
-            return Response({'detail': 'PATCH метод не разрешен.'},
-                            status=status.HTTP_405_METHOD_NOT_ALLOWED)
-        elif isinstance(
-            exc, MethodNotAllowed
-        ) and self.request.method == 'GET':
-            return Response({'detail': 'GET метод не разрешен.'},
-                            status=status.HTTP_405_METHOD_NOT_ALLOWED)
-        return super().handle_exception(exc)
