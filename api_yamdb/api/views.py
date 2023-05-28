@@ -5,13 +5,13 @@ from django.db import IntegrityError
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from rest_framework import filters, mixins, permissions, status, viewsets
-from rest_framework.decorators import action, api_view
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.exceptions import ValidationError
 from rest_framework.filters import SearchFilter
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import AccessToken
 from reviews.models import Category, Genre, Review, Title
 from users.models import User
 
@@ -26,7 +26,8 @@ from .serializers import (CategorySerializer, CommentSerializer,
 
 
 @api_view(['POST'])
-def register_user(request, id='id'):
+@permission_classes([AllowAny])
+def register_user(request,):
     """Функция регистрации user, генерации и отправки кода на почту"""
 
     serializer = RegistrationSerializer(data=request.data)
@@ -34,20 +35,20 @@ def register_user(request, id='id'):
     try:
         user, _ = User.objects.get_or_create(**serializer.validated_data)
     except IntegrityError:
-        raise ValidationError(
-            'username или email заняты!', status.HTTP_400_BAD_REQUEST
-        )
+        raise ValidationError('username или email заняты!')
     confirmation_code = default_token_generator.make_token(user)
     send_mail(
         subject='Регистрация в проекте YaMDb.',
         message=f'Ваш код подтверждения: {confirmation_code}',
         from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[user.email]
+        recipient_list=[user.email],
+        fail_silently=False,
     )
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def get_token(request):
     """Функция выдачи токена"""
 
@@ -57,13 +58,12 @@ def get_token(request):
         User, username=serializer.validated_data['username']
     )
     if default_token_generator.check_token(
-            user, serializer.validated_data['confirmation_code']
-    ):
-        token = RefreshToken.for_user(user)
+            user, serializer.validated_data['confirmation_code']):
+        token = AccessToken.for_user(user)
         return Response(
             {'access': str(token.access_token)}, status=status.HTTP_200_OK
         )
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    raise ValidationError('Invalid confirmation code.')
 
 
 class ListCreateDestroyGenericViewSet(
