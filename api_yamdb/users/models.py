@@ -1,10 +1,11 @@
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.conf import settings
+
+from .validators import ValidateUsername
 
 # from api_yamdb.settings import EMAIL, USERNAME_NAME
 
-from .validators import ValidateUsername
 
 
 class User(AbstractUser, ValidateUsername):

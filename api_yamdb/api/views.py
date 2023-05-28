@@ -76,6 +76,7 @@ class ListCreateDestroyGenericViewSet(
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     permission_classes = (IsAdminOrReadOnly,)
+    pagination_class = LimitOffsetPagination
     lookup_field = 'slug'
 
 
@@ -88,7 +89,6 @@ class UserViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
     lookup_field = 'username'
-    # lookup_value_regex = '[^/]+'
     http_method_names = ['get', 'post', 'patch', 'delete']
 
     @action(
@@ -145,14 +145,10 @@ class CommentViewSet(viewsets.ModelViewSet):
 class CategoryViewSet(ListCreateDestroyGenericViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = (IsAdminOrReadOnly,)
-    lookup_field = 'slug'
-    pagination_class = LimitOffsetPagination
     filter_backends = (SearchFilter,)
-    search_fields = ('name',)
 
-    def retrieve(self, request, *args, **kwargs):
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    # def retrieve(self, request, *args, **kwargs):
+    #     return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 class TitleViewSet(viewsets.ModelViewSet):
