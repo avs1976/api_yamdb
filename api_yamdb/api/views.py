@@ -7,12 +7,10 @@ from django.shortcuts import get_object_or_404
 from rest_framework import filters, mixins, permissions, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.exceptions import ValidationError
-from rest_framework.filters import SearchFilter
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
-
 from reviews.models import Category, Genre, Review, Title
 from users.models import User
 
@@ -28,7 +26,7 @@ from .serializers import (CategorySerializer, CommentSerializer,
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
-def register_user(request,):
+def register_user(request):
     """Функция регистрации user, генерации и отправки кода на почту"""
 
     serializer = RegistrationSerializer(data=request.data)
@@ -145,7 +143,6 @@ class CommentViewSet(viewsets.ModelViewSet):
 class CategoryViewSet(ListCreateDestroyGenericViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    filter_backends = (SearchFilter,)
 
 
 class TitleViewSet(viewsets.ModelViewSet):

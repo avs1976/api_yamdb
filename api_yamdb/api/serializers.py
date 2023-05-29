@@ -1,9 +1,7 @@
-# from api_yamdb.settings import EMAIL, USERNAME_NAME
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
-
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import User
 from users.validators import ValidateUsername
@@ -16,7 +14,6 @@ class UserSerializer(serializers.ModelSerializer, ValidateUsername):
         model = User
         fields = ('username', 'email', 'first_name',
                   'last_name', 'bio', 'role')
-        lookup_field = ('username',)
 
 
 class RegistrationSerializer(serializers.Serializer, ValidateUsername):
@@ -114,7 +111,6 @@ class ReviewSerializer(serializers.ModelSerializer):
         fields = ('id', 'text', 'author', 'score', 'pub_date')
 
     def validate(self, data):
-
         if not self.context.get('request').method == 'POST':
             return data
         if Review.objects.filter(
