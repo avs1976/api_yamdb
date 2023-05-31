@@ -39,7 +39,7 @@ class UserEditSerializer(UserSerializer):
     """Сериализатор модели User для get и patch"""
 
     class Meta(UserSerializer.Meta):
-        read_only_fields = ("role",)
+        read_only_fields = ('role',)
 
 
 class GenreSerializer(serializers.ModelSerializer):
