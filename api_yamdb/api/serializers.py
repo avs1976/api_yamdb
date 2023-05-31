@@ -5,10 +5,10 @@ from rest_framework.relations import SlugRelatedField
 
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import User
-from users.validators import ValidateUsername
+from users.validators import validate_username
 
 
-class UserSerializer(serializers.ModelSerializer, ValidateUsername):
+class UserSerializer(serializers.ModelSerializer):
     """Сериализатор модели User"""
 
     class Meta:
@@ -17,24 +17,29 @@ class UserSerializer(serializers.ModelSerializer, ValidateUsername):
                   'last_name', 'bio', 'role')
 
 
-class RegistrationSerializer(serializers.Serializer, ValidateUsername):
+class RegistrationSerializer(serializers.Serializer):
     """Сериализатор регистрации User"""
 
-    username = serializers.CharField(max_length=settings.USERNAME_NAME)
+    username = serializers.CharField(max_length=settings.USERNAME_NAME,
+                                     required=True,
+                                     validators=[validate_username])
     email = serializers.EmailField(max_length=settings.EMAIL)
 
 
-class TokenSerializer(serializers.Serializer, ValidateUsername):
+class TokenSerializer(serializers.Serializer):
     """Сериализатор токена"""
 
-    username = serializers.CharField(max_length=settings.USERNAME_NAME)
+    username = serializers.CharField(max_length=settings.USERNAME_NAME,
+                                     required=True,
+                                     validators=[validate_username])
     confirmation_code = serializers.CharField()
 
 
 class UserEditSerializer(UserSerializer):
     """Сериализатор модели User для get и patch"""
 
-    role = serializers.CharField(read_only=True)
+    class Meta(UserSerializer.Meta):
+        read_only_fields = ("role",)
 
 
 class GenreSerializer(serializers.ModelSerializer):
