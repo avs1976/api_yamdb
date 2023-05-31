@@ -16,7 +16,8 @@ class User(AbstractUser):
         (USER, 'Пользователь'),
     )
     username = models.CharField(
-        'Ник', max_length=settings.USERNAME_NAME, unique=True
+        'Ник', max_length=settings.USERNAME_NAME, unique=True,
+        validators=[validate_username],
     )
     email = models.EmailField('Почта', max_length=settings.EMAIL, unique=True)
     role = models.CharField(
@@ -25,7 +26,6 @@ class User(AbstractUser):
         choices=ROLES, default=USER
     )
     bio = models.TextField('Об авторе', null=True, blank=True)
-    validators = (validate_username)
 
     @property
     def is_moderator(self):
