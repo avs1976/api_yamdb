@@ -158,3 +158,5 @@ MAX_LENGTH: int = 1000
 MAX_TEXT: int = 15
 
 LEN_ROLE: int = 25
+
+NO_REGISTER_USERNAME = 'me'

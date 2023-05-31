@@ -2,10 +2,10 @@ from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-from .validators import ValidateUsername
+from .validators import validate_username
 
 
-class User(AbstractUser, ValidateUsername):
+class User(AbstractUser):
     ADMIN = 'admin'
     MODERATOR = 'moderator'
     USER = 'user'
@@ -25,6 +25,7 @@ class User(AbstractUser, ValidateUsername):
         choices=ROLES, default=USER
     )
     bio = models.TextField('Об авторе', null=True, blank=True)
+    validators = (validate_username)
 
     @property
     def is_moderator(self):
