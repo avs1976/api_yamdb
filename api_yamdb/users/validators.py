@@ -6,7 +6,7 @@ from django.utils.translation import gettext_lazy as _
 
 
 def validate_username(username):
-    if not re.match(r'^[\w.@+-]+\Z', username):
+    if not re.match(settings.PATTERN, username):
         raise ValidationError(_(f'{username} содержит запрещенные символы!'))
     if username.lower() == settings.NO_REGISTER_USERNAME:
         raise ValidationError(
