@@ -7,7 +7,6 @@ from django.shortcuts import get_object_or_404
 from rest_framework import filters, mixins, permissions, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.exceptions import ValidationError
-from rest_framework.filters import SearchFilter
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -28,7 +27,7 @@ from .serializers import (CategorySerializer, CommentSerializer,
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
-def register_user(request,):
+def register_user(request):
     """Функция регистрации user, генерации и отправки кода на почту"""
 
     serializer = RegistrationSerializer(data=request.data)
@@ -75,7 +74,10 @@ class ListCreateDestroyGenericViewSet(
 ):
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
-    permission_classes = (IsAdminOrReadOnly,)
+    permission_classes = (
+        permissions.IsAuthenticatedOrReadOnly,
+        IsAdminOrReadOnly
+    )
     pagination_class = LimitOffsetPagination
     lookup_field = 'slug'
 
@@ -112,7 +114,10 @@ class UserViewSet(viewsets.ModelViewSet):
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = (IsAdminModeratorAuthorOrReadOnly,)
+    permission_classes = (
+        permissions.IsAuthenticatedOrReadOnly,
+        IsAdminModeratorAuthorOrReadOnly
+    )
 
     def get_title(self):
         return get_object_or_404(Title, id=self.kwargs.get('title_id'))
@@ -128,7 +133,10 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = (IsAdminModeratorAuthorOrReadOnly,)
+    permission_classes = (
+        permissions.IsAuthenticatedOrReadOnly,
+        IsAdminModeratorAuthorOrReadOnly
+    )
 
     def get_review(self):
         return get_object_or_404(Review, id=self.kwargs.get('review_id'))
@@ -145,7 +153,6 @@ class CommentViewSet(viewsets.ModelViewSet):
 class CategoryViewSet(ListCreateDestroyGenericViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    filter_backends = (SearchFilter,)
 
 
 class TitleViewSet(viewsets.ModelViewSet):
