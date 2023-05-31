@@ -1,4 +1,3 @@
-# from api_yamdb.settings import EMAIL, USERNAME_NAME
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
@@ -6,37 +5,41 @@ from rest_framework.relations import SlugRelatedField
 
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import User
-from users.validators import ValidateUsername
+from users.validators import validate_username
 
 
-class UserSerializer(serializers.ModelSerializer, ValidateUsername):
+class UserSerializer(serializers.ModelSerializer):
     """Сериализатор модели User"""
 
     class Meta:
         model = User
         fields = ('username', 'email', 'first_name',
                   'last_name', 'bio', 'role')
-        lookup_field = ('username',)
 
 
-class RegistrationSerializer(serializers.Serializer, ValidateUsername):
+class RegistrationSerializer(serializers.Serializer):
     """Сериализатор регистрации User"""
 
-    username = serializers.CharField(max_length=settings.USERNAME_NAME)
+    username = serializers.CharField(max_length=settings.USERNAME_NAME,
+                                     required=True,
+                                     validators=[validate_username])
     email = serializers.EmailField(max_length=settings.EMAIL)
 
 
-class TokenSerializer(serializers.Serializer, ValidateUsername):
+class TokenSerializer(serializers.Serializer):
     """Сериализатор токена"""
 
-    username = serializers.CharField(max_length=settings.USERNAME_NAME)
+    username = serializers.CharField(max_length=settings.USERNAME_NAME,
+                                     required=True,
+                                     validators=[validate_username])
     confirmation_code = serializers.CharField()
 
 
 class UserEditSerializer(UserSerializer):
     """Сериализатор модели User для get и patch"""
 
-    role = serializers.CharField(read_only=True)
+    class Meta(UserSerializer.Meta):
+        read_only_fields = ("role",)
 
 
 class GenreSerializer(serializers.ModelSerializer):
@@ -114,7 +117,6 @@ class ReviewSerializer(serializers.ModelSerializer):
         fields = ('id', 'text', 'author', 'score', 'pub_date')
 
     def validate(self, data):
-
         if not self.context.get('request').method == 'POST':
             return data
         if Review.objects.filter(
