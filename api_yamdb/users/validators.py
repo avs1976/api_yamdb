@@ -1,18 +1,13 @@
 import re
-
+from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
+"""Валидаторы для username."""
 
 
-class ValidateUsername:
-    """Валидаторы для username."""
-
-    def validate_username(self, username):
-        pattern = re.compile(r'^[\w.@+-]+')
-
-        if pattern.fullmatch(username) is None:
-            match = re.split(pattern, username)
-            symbol = ''.join(match)
-            raise ValidationError(f'Некорректные символы в username: {symbol}')
-        if username == 'me':
-            raise ValidationError('Ник "me" нельзя регистрировать!')
-        return username
+def validate_username(username):
+    if not re.match(r'^[\w.@+-]+\Z', username):
+        raise ValidationError(_(f'{username} содержит запрещенные символы!'))
+    if username.lower() == settings.NO_REGISTER_USERNAME:
+        raise ValidationError(
+            f'Ник {settings.NO_REGISTER_USERNAME} нельзя регистрировать!')
