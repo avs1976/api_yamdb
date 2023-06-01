@@ -160,3 +160,5 @@ MAX_TEXT: int = 15
 LEN_ROLE: int = 25
 
 NO_REGISTER_USERNAME = 'me'
+
+PATTERN = r'^[\w.@+-]+\Z'
